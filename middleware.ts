@@ -1,9 +1,9 @@
-import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 const publicRoutes = ["/", "/pricing", "/login", "/api"];
 
-export default auth((req) => {
+export default function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Allow public routes
@@ -12,15 +12,19 @@ export default auth((req) => {
   );
   if (isPublic) return NextResponse.next();
 
-  // Redirect to login if not authenticated
-  if (!req.auth) {
+  // Check for Auth.js session token (JWT strategy)
+  const token =
+    req.cookies.get("authjs.session-token")?.value ||
+    req.cookies.get("__Secure-authjs.session-token")?.value;
+
+  if (!token) {
     const loginUrl = new URL("/login", req.url);
     loginUrl.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
   return NextResponse.next();
-});
+}
 
 export const config = {
   matcher: [
