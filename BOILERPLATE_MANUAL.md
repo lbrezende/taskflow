@@ -213,6 +213,8 @@ RESEND_API_KEY=
 11. **Stripe SDK v20 breaking changes** — `current_period_end` removido de Subscription. Usamos `invoice.period_end` via latest_invoice. `invoice.subscription` virou `invoice.parent.subscription_details.subscription`. API version: `2026-02-25.clover`.
 12. **Stripe client lazy init** — Proxy pattern para evitar crash no build quando STRIPE_SECRET_KEY não está configurada. O client só é criado no primeiro uso em runtime.
 13. **Auth.js v5 env vars** — Usa `AUTH_SECRET` em vez de `NEXTAUTH_SECRET`, e `AUTH_GOOGLE_ID`/`AUTH_GOOGLE_SECRET` em vez de `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`. O prefixo `AUTH_` é o padrão do Auth.js v5.
+14. **Middleware leve (Edge Function < 1MB)** — O middleware NÃO importa `auth` do Auth.js. Importar Auth.js puxa Prisma+Resend+providers (~1.01MB), estourando o limite de 1MB do Vercel free. Em vez disso, o middleware checa diretamente o cookie `authjs.session-token`. Regra: **nunca importar libs pesadas no middleware**.
+15. **Variáveis de ambiente na Vercel** — Todas as env vars do `.env.example` devem ser configuradas na Vercel via `vercel env add`. Sem elas o deploy compila mas falha na etapa de deploy.
 
 ---
 
