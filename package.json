@@ -4,7 +4,6 @@
   "private": true,
   "scripts": {
     "dev": "node scripts/welcome.mjs && next dev",
-    "postinstall": "node scripts/welcome.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
