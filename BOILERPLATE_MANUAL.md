@@ -176,26 +176,22 @@ my-mvp/
 # Database (Neon - https://neon.tech)
 DATABASE_URL=
 
-# Auth.js
-NEXTAUTH_SECRET=
-NEXTAUTH_URL=http://localhost:3000
-
-# Google OAuth (https://console.cloud.google.com)
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
-
-# Resend (https://resend.com)
-RESEND_API_KEY=
-EMAIL_FROM=onboarding@resend.dev
+# Auth.js v5
+AUTH_SECRET=              # openssl rand -base64 32
+AUTH_GOOGLE_ID=           # Google Cloud Console
+AUTH_GOOGLE_SECRET=
+AUTH_RESEND_KEY=          # Resend API Key (para magic links)
 
 # Stripe (https://dashboard.stripe.com)
 STRIPE_SECRET_KEY=
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
 STRIPE_WEBHOOK_SECRET=
 STRIPE_PRICE_ID_PRO=
 
 # App
 NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+# Resend (emails transacionais)
+RESEND_API_KEY=
 ```
 
 ---
@@ -214,6 +210,9 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 8. **CLAUDE.md na raiz** — Inspirado pelo LastSaaS. Convenções do projeto para agentes AI.
 9. **Script de setup interativo** — `npm run setup` para configurar .env automaticamente.
 10. **Análise competitiva:** supastarter ($299 pago), Memberstack (grátis, auth-only), LastSaaS (grátis, Go+MongoDB). Nosso: **grátis, Next.js, Prisma+PostgreSQL, cobertura essencial SaaS.**
+11. **Stripe SDK v20 breaking changes** — `current_period_end` removido de Subscription. Usamos `invoice.period_end` via latest_invoice. `invoice.subscription` virou `invoice.parent.subscription_details.subscription`. API version: `2026-02-25.clover`.
+12. **Stripe client lazy init** — Proxy pattern para evitar crash no build quando STRIPE_SECRET_KEY não está configurada. O client só é criado no primeiro uso em runtime.
+13. **Auth.js v5 env vars** — Usa `AUTH_SECRET` em vez de `NEXTAUTH_SECRET`, e `AUTH_GOOGLE_ID`/`AUTH_GOOGLE_SECRET` em vez de `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`. O prefixo `AUTH_` é o padrão do Auth.js v5.
 
 ---
 

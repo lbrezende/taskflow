@@ -1,36 +1,122 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TaskFlow — Boilerplate SaaS MVP
 
-## Getting Started
+Boilerplate completo para criar um MVP de SaaS em minutos. Clone, configure as variáveis de ambiente, e tenha um produto funcional com autenticação, pagamentos, e sistema de planos.
 
-First, run the development server:
+## Stack
+
+| Camada | Tecnologia |
+|--------|-----------|
+| Framework | Next.js 16 (App Router) |
+| Linguagem | TypeScript (strict) |
+| Estilo | Tailwind CSS 4 + shadcn/ui |
+| Banco de dados | PostgreSQL (Neon) |
+| ORM | Prisma 6 |
+| Autenticação | Auth.js v5 (Google + Magic Link) |
+| Pagamentos | Stripe (subscriptions) |
+| Validação | Zod |
+| Data fetching | TanStack Query |
+| E-mail | Resend |
+| Deploy | Vercel |
+
+## Funcionalidades incluídas
+
+- Login com Google OAuth e Magic Link (Resend)
+- Sistema de planos: FREE, TRIAL (14 dias), PRO
+- Paywall com limites por plano
+- Checkout e portal do cliente via Stripe
+- Webhooks Stripe para lifecycle de assinatura
+- CRUD completo de exemplo (TodoLists + TodoItems)
+- Landing page com Hero, Features, Pricing, Footer
+- Dashboard protegido com middleware
+- Banner de trial com contagem regressiva
+- Componente PaywallGate reutilizável
+
+## Quick Start
 
 ```bash
+# 1. Clone o repositório
+git clone https://github.com/lbrezende/taskflow.git
+cd taskflow
+
+# 2. Instale dependências
+npm install
+
+# 3. Configure variáveis de ambiente
+cp .env.example .env
+# Preencha os valores no .env
+
+# 4. Configure o banco de dados
+npx prisma generate
+npx prisma db push
+
+# 5. Rode o servidor
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Acesse `http://localhost:3000`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Configuração de serviços
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Neon (Banco de dados)
+1. Crie uma conta em [neon.tech](https://neon.tech)
+2. Crie um novo projeto
+3. Copie a connection string para `DATABASE_URL`
 
-## Learn More
+### Google OAuth
+1. Acesse [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
+2. Crie um OAuth 2.0 Client ID
+3. Redirect URI: `http://localhost:3000/api/auth/callback/google`
+4. Copie Client ID e Secret para `AUTH_GOOGLE_ID` e `AUTH_GOOGLE_SECRET`
 
-To learn more about Next.js, take a look at the following resources:
+### Resend (Magic Link + E-mails)
+1. Crie uma conta em [resend.com](https://resend.com)
+2. Copie a API Key para `AUTH_RESEND_KEY` e `RESEND_API_KEY`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Stripe
+1. Crie uma conta em [stripe.com](https://stripe.com)
+2. Copie a Secret Key para `STRIPE_SECRET_KEY`
+3. Crie um produto com preço recorrente
+4. Copie o Price ID para `STRIPE_PRICE_ID_PRO`
+5. Configure o webhook endpoint: `https://seu-dominio.com/api/stripe/webhook`
+6. Eventos necessários: `checkout.session.completed`, `invoice.payment_succeeded`, `customer.subscription.deleted`, `customer.subscription.updated`
+7. Copie o Webhook Secret para `STRIPE_WEBHOOK_SECRET`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Estrutura de pastas
 
-## Deploy on Vercel
+```
+app/
+  (public)/        # Rotas públicas (login, pricing)
+  (auth)/          # Rotas protegidas (dashboard, settings)
+  api/             # API routes (auth, stripe, todo-lists, todo-items)
+  page.tsx         # Landing page
+components/
+  layout/          # Navbar, Providers, TrialBanner
+  paywall/         # PaywallGate
+  ui/              # shadcn/ui components
+hooks/             # TanStack Query hooks
+lib/               # Auth, DB, Stripe, Subscription, Validations, Email
+prisma/            # Schema
+types/             # TypeScript types
+.claude/           # Contexto para assistentes AI
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Como personalizar para seu produto
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. **Substitua o TodoList/TodoItem** pela sua feature principal
+2. **Edite `lib/subscription.ts`** para definir os limites do seu plano
+3. **Edite `prisma/schema.prisma`** para suas entidades
+4. **Edite a landing page** em `app/page.tsx`
+5. **Edite os textos** — o app usa PT-BR por padrão
+
+Consulte o `BOILERPLATE_MANUAL.md` para decisões detalhadas e guia completo.
+
+## Deploy na Vercel
+
+1. Push para GitHub
+2. Importe o projeto na [Vercel](https://vercel.com)
+3. Adicione todas as variáveis de ambiente
+4. Deploy!
+
+## Licença
+
+MIT
