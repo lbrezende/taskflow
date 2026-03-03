@@ -1,0 +1,100 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Plan {
+  FREE
+  TRIAL
+  PRO
+}
+
+model User {
+  id                       String    @id @default(cuid())
+  name                     String?
+  email                    String    @unique
+  emailVerified            DateTime?
+  image                    String?
+  stripeCustomerId         String?   @unique
+  stripePriceId            String?
+  stripeSubscriptionId     String?   @unique
+  stripeCurrentPeriodEnd   DateTime?
+  trialEndsAt              DateTime?
+  plan                     Plan      @default(FREE)
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+
+  accounts  Account[]
+  sessions  Session[]
+  todoLists TodoList[]
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+// ─── Product Entities ──────────────────────────────────
+
+model TodoList {
+  id        String     @id @default(cuid())
+  name      String
+  userId    String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items TodoItem[]
+
+  @@index([userId])
+}
+
+model TodoItem {
+  id         String   @id @default(cuid())
+  title      String
+  completed  Boolean  @default(false)
+  todoListId String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  todoList TodoList @relation(fields: [todoListId], references: [id], onDelete: Cascade)
+
+  @@index([todoListId])
+}
