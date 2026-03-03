@@ -208,6 +208,12 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 2. **Toast → Sonner** — O componente `toast` do shadcn/ui foi depreciado. Usamos `sonner` no lugar.
 3. **React Compiler: No** — Não ativamos o React Compiler experimental.
 4. **Pré-requisitos adicionados** — Seção com todas as ferramentas e contas necessárias antes de começar. Não assuma que o usuário tem Node/npm/git instalados.
+5. **Prisma 6 (não 7)** — Prisma 7 mudou completamente a config do datasource. Usamos Prisma ^6 que é estável e compatível com o padrão Auth.js.
+6. **Vercel CLI** — Necessário instalar globalmente (`npm install -g vercel`) para deploy via terminal. Vercel conecta ao GitHub automaticamente.
+7. **`.claude/` directory adicionado** — Inspirado pelo boilerplate Memberstack. Docs de contexto para AI.
+8. **CLAUDE.md na raiz** — Inspirado pelo LastSaaS. Convenções do projeto para agentes AI.
+9. **Script de setup interativo** — `npm run setup` para configurar .env automaticamente.
+10. **Análise competitiva:** supastarter ($299 pago), Memberstack (grátis, auth-only), LastSaaS (grátis, Go+MongoDB). Nosso: **grátis, Next.js, Prisma+PostgreSQL, cobertura essencial SaaS.**
 
 ---
 
