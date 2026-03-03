@@ -73,6 +73,12 @@ model VerificationToken {
 
 // ─── Product Entities ──────────────────────────────────
 
+enum TodoStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
 model TodoList {
   id        String     @id @default(cuid())
   name      String
@@ -87,12 +93,13 @@ model TodoList {
 }
 
 model TodoItem {
-  id         String   @id @default(cuid())
+  id         String     @id @default(cuid())
   title      String
-  completed  Boolean  @default(false)
+  status     TodoStatus @default(TODO)
+  position   Int        @default(0)
   todoListId String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
 
   todoList TodoList @relation(fields: [todoListId], references: [id], onDelete: Cascade)
 

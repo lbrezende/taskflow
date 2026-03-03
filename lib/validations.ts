@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+export const todoStatusEnum = z.enum(["TODO", "IN_PROGRESS", "DONE"]);
+
 export const todoListSchema = z.object({
   name: z
     .string()
@@ -15,14 +17,11 @@ export const todoItemSchema = z.object({
   todoListId: z.string().cuid(),
 });
 
-export const toggleItemSchema = z.object({
-  id: z.string().cuid(),
-  completed: z.boolean(),
-});
-
-export const deleteItemSchema = z.object({
-  id: z.string().cuid(),
+export const updateItemStatusSchema = z.object({
+  status: todoStatusEnum,
+  position: z.number().int().min(0).optional(),
 });
 
 export type TodoListInput = z.infer<typeof todoListSchema>;
 export type TodoItemInput = z.infer<typeof todoItemSchema>;
+export type TodoStatus = z.infer<typeof todoStatusEnum>;

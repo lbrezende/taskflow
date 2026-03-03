@@ -1,12 +1,16 @@
-import { Navbar } from "@/components/layout/navbar";
+import { Sidebar } from "@/components/layout/sidebar";
+import { TopHeader } from "@/components/layout/top-header";
 import { TrialBanner } from "@/components/layout/trial-banner";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="flex h-screen flex-col overflow-hidden bg-white font-['Inter',sans-serif]">
       <TrialBanner />
-      <Navbar />
-      <main className="mx-auto max-w-5xl px-4 py-8">{children}</main>
+      <TopHeader />
+      <div className="flex flex-1 overflow-hidden">
+        <Sidebar />
+        <main className="flex-1 overflow-auto bg-white">{children}</main>
+      </div>
     </div>
   );
 }

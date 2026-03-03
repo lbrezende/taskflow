@@ -1,8 +1,9 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { updateItemStatusSchema } from "@/lib/validations";
 import { NextResponse } from "next/server";
 
-// PATCH toggle todo item completion
+// PATCH update todo item status/position
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ itemId: string }> }
@@ -14,6 +15,14 @@ export async function PATCH(
 
   const { itemId } = await params;
   const body = await req.json();
+  const parsed = updateItemStatusSchema.safeParse(body);
+
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: parsed.error.flatten().fieldErrors },
+      { status: 400 }
+    );
+  }
 
   // Verify the item belongs to the user via its list
   const item = await db.todoItem.findFirst({
@@ -29,7 +38,10 @@ export async function PATCH(
 
   const updated = await db.todoItem.update({
     where: { id: itemId },
-    data: { completed: body.completed },
+    data: {
+      status: parsed.data.status,
+      ...(parsed.data.position !== undefined && { position: parsed.data.position }),
+    },
   });
 
   return NextResponse.json(updated);

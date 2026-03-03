@@ -2,11 +2,13 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import type { TodoStatus } from "@/lib/validations";
 
 type TodoItem = {
   id: string;
   title: string;
-  completed: boolean;
+  status: TodoStatus;
+  position: number;
   todoListId: string;
   createdAt: string;
   updatedAt: string;
@@ -20,6 +22,8 @@ type TodoList = {
   updatedAt: string;
   items: TodoItem[];
 };
+
+export type { TodoItem, TodoList };
 
 export function useTodoLists() {
   return useQuery<TodoList[]>({
@@ -113,26 +117,50 @@ export function useCreateTodoItem() {
   });
 }
 
-export function useToggleTodoItem() {
+export function useUpdateItemStatus() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async ({
       itemId,
-      completed,
+      status,
+      position,
     }: {
       itemId: string;
-      completed: boolean;
+      status: TodoStatus;
+      position?: number;
     }) => {
       const res = await fetch(`/api/todo-items/${itemId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ completed }),
+        body: JSON.stringify({ status, position }),
       });
-      if (!res.ok) throw new Error("Failed to toggle item");
+      if (!res.ok) throw new Error("Failed to update item");
       return res.json();
     },
-    onSuccess: () => {
+    onMutate: async ({ itemId, status }) => {
+      await queryClient.cancelQueries({ queryKey: ["todo-lists"] });
+      const previous = queryClient.getQueryData<TodoList[]>(["todo-lists"]);
+
+      queryClient.setQueryData<TodoList[]>(["todo-lists"], (old) => {
+        if (!old) return old;
+        return old.map((list) => ({
+          ...list,
+          items: list.items.map((item) =>
+            item.id === itemId ? { ...item, status } : item
+          ),
+        }));
+      });
+
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(["todo-lists"], context.previous);
+      }
+      toast.error("Erro ao mover tarefa.");
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["todo-lists"] });
     },
   });

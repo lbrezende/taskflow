@@ -29,10 +29,19 @@ export async function POST(req: Request) {
     return new NextResponse("List not found", { status: 404 });
   }
 
+  // Get the max position for TODO items in this list
+  const maxPositionItem = await db.todoItem.findFirst({
+    where: { todoListId: parsed.data.todoListId, status: "TODO" },
+    orderBy: { position: "desc" },
+    select: { position: true },
+  });
+
   const item = await db.todoItem.create({
     data: {
       title: parsed.data.title,
       todoListId: parsed.data.todoListId,
+      status: "TODO",
+      position: (maxPositionItem?.position ?? -1) + 1,
     },
   });
 

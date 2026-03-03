@@ -14,7 +14,7 @@ export async function GET() {
   const lists = await db.todoList.findMany({
     where: { userId: session.user.id },
     include: {
-      items: { orderBy: { createdAt: "asc" } },
+      items: { orderBy: { position: "asc" } },
     },
     orderBy: { createdAt: "desc" },
   });

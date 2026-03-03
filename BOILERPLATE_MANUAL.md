@@ -76,6 +76,19 @@ Fluxo:
 4. Pagou → PRO → acesso total
 5. Cancelou → acesso até fim do período
 
+**Upgrade durante trial (imediato):**
+- O `createCheckoutSession()` em `lib/stripe.ts` NÃO define `trial_period_days` no `subscription_data`
+- Isso significa que o Stripe cria uma assinatura paga imediatamente, sem período de trial no Stripe
+- O webhook `checkout.session.completed` atualiza `plan: "PRO"` no banco
+- O usuário TRIAL pode clicar "Upgrade" a qualquer momento, passar o cartão e virar PRO na hora
+- Pontos de upgrade: billing page (`/settings/billing`) e trial banner (link "Fazer upgrade")
+- Webhook events que tratam o lifecycle:
+  - `checkout.session.completed` → cria assinatura, seta plan=PRO
+  - `invoice.payment_succeeded` → renova período
+  - `customer.subscription.updated` → atualiza status
+  - `customer.subscription.deleted` → volta para FREE
+- Após upgrade, o Stripe Customer Portal permite gerenciar/cancelar via `createCustomerPortalSession()`
+
 ### ETAPA 4 — PAYWALL E LIMITES
 - Constante `PLAN_LIMITS` com limites por plano
 - Função `checkUsageLimit(user, resource)`
@@ -215,37 +228,39 @@ RESEND_API_KEY=
 13. **Auth.js v5 env vars** — Usa `AUTH_SECRET` em vez de `NEXTAUTH_SECRET`, e `AUTH_GOOGLE_ID`/`AUTH_GOOGLE_SECRET` em vez de `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`. O prefixo `AUTH_` é o padrão do Auth.js v5.
 14. **Middleware leve (Edge Function < 1MB)** — O middleware NÃO importa `auth` do Auth.js. Importar Auth.js puxa Prisma+Resend+providers (~1.01MB), estourando o limite de 1MB do Vercel free. Em vez disso, o middleware checa diretamente o cookie `authjs.session-token`. Regra: **nunca importar libs pesadas no middleware**.
 15. **Variáveis de ambiente na Vercel** — Todas as env vars do `.env.example` devem ser configuradas na Vercel via `vercel env add`. Sem elas o deploy compila mas falha na etapa de deploy.
+16. **Upgrade durante trial** — O checkout Stripe NÃO define `trial_period_days` em `subscription_data`, então o usuário pode passar o cartão e virar PRO imediatamente durante o trial. O webhook `checkout.session.completed` atualiza `plan: "PRO"`. Sem delay. Billing page e trial banner mostram botão de upgrade para TRIAL users.
+17. **Figma MCP** — Para design-to-code, instale `@anthropic-ai/figma-mcp-server` como MCP server no Claude Code. Permite extrair código pixel-perfect de qualquer node do Figma usando `get_design_context`.
 
 ---
 
 ## [MEU PRODUTO] — SUBSTITUA ABAIXO
 
 ```
-Nome do produto: TaskFlow
-Headline: "Organize suas tarefas sem complicação."
-Subtítulo: "Crie listas, adicione tarefas, e mantenha o foco no que importa."
+Nome do produto: [NOME]
+Headline: "[FRASE PRINCIPAL DO HERO]"
+Subtítulo: "[SUBTÍTULO DO HERO]"
 
 Features:
-1. Criar listas de tarefas com nome customizado
-2. Adicionar tarefas dentro de cada lista (título + checkbox)
-3. Remover tarefas individualmente
-4. Marcar tarefas como concluídas (toggle)
-5. Deletar listas inteiras
+1. [Feature principal]
+2. [Feature 2]
+3. [Feature 3]
+4. [Feature 4]
+5. [Feature 5]
 
-Entidades extras:
-- TodoList (id, name, userId, createdAt, updatedAt)
-- TodoItem (id, title, completed, todoListId, createdAt, updatedAt)
+Entidades extras (além de User, Account, Session):
+- [Entidade1] (campos...)
+- [Entidade2] (campos...)
 
-Limites:
-- FREE: máximo 3 listas. Tarefas ilimitadas por lista.
-- TRIAL (14 dias): tudo ilimitado.
-- PRO: tudo ilimitado.
+Limites por plano:
+- FREE: [descreva limites]
+- TRIAL (14 dias): tudo ilimitado
+- PRO: tudo ilimitado
 
 Preço:
-- PRO: R$ 19,90/mês
+- PRO: R$ [VALOR]/mês
 
 Cores:
-- Primária: #2563EB (azul)
-- Fundo: branco + cinza sutil
-- Acento: verde para tarefas concluídas
+- Primária: [hex]
+- Fundo: [hex]
+- Acento: [hex]
 ```
