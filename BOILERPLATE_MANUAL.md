@@ -56,6 +56,28 @@ Crie o `prisma/schema.prisma` com as entidades obrigatórias:
 - **Account, Session, VerificationToken**: padrão Auth.js
 - **Entidades do produto**: definidas na seção [MEU PRODUTO]
 
+Também crie o Design System (Single Source of Truth):
+
+`design-system/tokens.ts` — Fonte única de design tokens:
+* Definir objeto tipado `DesignTokens` com: colors, sidebar, radius, spacing, typography
+* Todas as cores do tema, tokens de sidebar, escala tipográfica
+* Exportar tokens e tipo `DesignTokens`
+
+`design-system/utils.ts` — Helpers de conversão:
+* `tokenKeyToCssVar(key)` — converte camelCase para CSS var (ex: `"cardForeground"` → `"--card-foreground"`)
+* `sidebarKeyToCssVar(key)` — converte para sidebar CSS var (ex: `"primary"` → `"--sidebar-primary"`)
+
+`design-system/generate-css.ts` — Gerador de CSS:
+* Importa `tokens.ts` e gera bloco `:root {}` no `globals.css` entre marcadores de comentário
+* Preserva todo conteúdo fora do `:root` (imports, @theme inline, @layer base)
+* Flag `--check` para CI (verifica se `globals.css` está sincronizado)
+
+`package.json` — Adicionar scripts:
+* `"tokens": "tsx design-system/generate-css.ts"`
+* `"tokens:check": "tsx design-system/generate-css.ts --check"`
+
+**REGRA:** Nunca usar hex hardcoded nos componentes. Sempre usar tokens semânticos Tailwind (`bg-primary`, `text-foreground`, etc).
+
 ### ETAPA 2 — AUTENTICAÇÃO (Auth.js v5)
 - Google OAuth + Email Magic Link (via Resend)
 - Primeiro login → `plan=TRIAL`, `trialEndsAt=now+14dias`
@@ -107,6 +129,20 @@ Implementar as features descritas em [MEU PRODUTO] com:
 - API routes com auth
 - PaywallGate nos limites
 
+Após implementar as features, configure o Storybook (Design System wired):
+
+1. Instalar Storybook: `npx storybook@latest init`
+2. Configurar `.storybook/preview.ts` para importar `globals.css` e usar tokens de `design-system/tokens.ts` nos backgrounds
+3. Criar stories para Design Tokens:
+   * `stories/design-tokens/Colors.stories.tsx` — Grid visual de todas as cores importadas de `tokens.ts`
+   * `stories/design-tokens/Typography.stories.tsx` — Escala tipográfica importada de `tokens.typography`
+   * `stories/design-tokens/Spacing.stories.tsx` — Barras visuais importadas de `tokens.spacing`
+4. Criar stories para cada componente UI (Button, Card, Input, Badge, Dialog, Select, Tabs)
+5. Criar stories para componentes do produto (PaywallGate, TrialBanner)
+6. Todas as stories DEVEM importar tokens de `design-system/tokens.ts` — isso garante que mudanças nos tokens propagam automaticamente
+
+**REGRA WIRED:** Editar `tokens.ts` → rodar `npm run tokens` → mudanças refletem no produto E no Storybook.
+
 ### ETAPA 7 — LANDING PAGE
 Seções: Hero → Features → Screenshots → Pricing → Footer
 
@@ -117,6 +153,11 @@ Tirar screenshots reais do app e colocar na landing page.
 - `.env.example` completo
 - `.gitignore`
 - `README.md` com setup passo a passo
+
+Também verifique o Design System wired:
+* Rodar `npm run tokens:check` para verificar sincronização
+* Verificar zero hex hardcoded nos componentes (`grep -r "bg-\[#" components/ app/`)
+* Adicionar `npm run tokens:check` no CI/CD pipeline
 
 ---
 
@@ -134,6 +175,8 @@ Tirar screenshots reais do app e colocar na landing page.
 | Stripe | Pagamentos |
 | shadcn/ui | Componentes UI |
 | Resend | Emails transacionais |
+| Storybook 10 | Design System documentation & testing |
+| design-system/tokens.ts | Design tokens single source of truth |
 
 ## HOSPEDAGEM
 
@@ -172,6 +215,17 @@ my-mvp/
 ├── types/
 ├── prisma/
 │   └── schema.prisma
+├── design-system/
+│   ├── tokens.ts          # Source of truth for all design tokens
+│   ├── utils.ts           # Token conversion helpers
+│   └── generate-css.ts    # CSS generator script
+├── stories/
+│   ├── design-tokens/     # Colors, Typography, Spacing stories
+│   ├── ui/                # UI component stories
+│   └── components/        # Product component stories
+├── .storybook/
+│   ├── main.ts
+│   └── preview.ts
 ├── public/
 │   └── screenshots/
 ├── .env.example
@@ -230,6 +284,7 @@ RESEND_API_KEY=
 15. **Variáveis de ambiente na Vercel** — Todas as env vars do `.env.example` devem ser configuradas na Vercel via `vercel env add`. Sem elas o deploy compila mas falha na etapa de deploy.
 16. **Upgrade durante trial** — O checkout Stripe NÃO define `trial_period_days` em `subscription_data`, então o usuário pode passar o cartão e virar PRO imediatamente durante o trial. O webhook `checkout.session.completed` atualiza `plan: "PRO"`. Sem delay. Billing page e trial banner mostram botão de upgrade para TRIAL users.
 17. **Figma MCP** — Para design-to-code, instale `@anthropic-ai/figma-mcp-server` como MCP server no Claude Code. Permite extrair código pixel-perfect de qualquer node do Figma usando `get_design_context`.
+18. **Design System Wired** — O design system usa um arquivo TypeScript (`design-system/tokens.ts`) como fonte única de verdade. Um script (`npm run tokens`) gera as CSS custom properties no `globals.css` a partir desse arquivo. As stories do Storybook importam os mesmos tokens, garantindo que mudanças propagam para produto e documentação simultaneamente. Regra: zero hex hardcoded nos componentes — sempre usar tokens semânticos Tailwind.
 
 ---
 
